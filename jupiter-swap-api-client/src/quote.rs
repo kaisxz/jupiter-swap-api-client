@@ -27,10 +27,6 @@ pub struct SwapInfo {
     /// An estimation of the output amount into the AMM
     #[serde(with = "field_as_string")]
     pub out_amount: u64,
-    #[serde(with = "field_as_string")]
-    pub fee_amount: u64,
-    #[serde(with = "field_as_string")]
-    pub fee_mint: Pubkey,
 }
 
 #[derive(Serialize, Deserialize, Default, PartialEq, Clone, Debug)]
@@ -216,10 +212,6 @@ pub struct QuoteResponse {
     pub other_amount_threshold: u64,
     pub swap_mode: SwapMode,
     pub slippage_bps: u16,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub computed_auto_slippage: Option<u16>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub uses_quote_minimizing_slippage: Option<bool>,
     pub platform_fee: Option<PlatformFee>,
     pub price_impact_pct: Decimal,
     pub route_plan: RoutePlanWithMetadata,
@@ -227,4 +219,12 @@ pub struct QuoteResponse {
     pub context_slot: u64,
     #[serde(default)]
     pub time_taken: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub most_reliable_amms_quote_report: Option<MostReliableAmmsQuoteReport>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MostReliableAmmsQuoteReport {
+    pub info: HashMap<String, String>,
 }
