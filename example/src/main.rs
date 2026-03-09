@@ -18,7 +18,8 @@ async fn main() {
     let api_base_url = env::var("API_BASE_URL").unwrap_or("https://quote-api.jup.ag/v6".into());
     println!("Using base url: {}", api_base_url);
 
-    let jupiter_swap_api_client = JupiterSwapApiClient::new(api_base_url);
+    let api_key = env::var("JUPITER_API_KEY").ok();
+    let jupiter_swap_api_client = JupiterSwapApiClient::new(api_base_url, api_key);
 
     let quote_request = QuoteRequest {
         amount: 1_000_000,

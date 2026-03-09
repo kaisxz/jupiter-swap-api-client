@@ -15,6 +15,7 @@ pub mod transaction_config;
 #[derive(Clone)]
 pub struct JupiterSwapApiClient {
     pub base_path: String,
+    pub api_key: Option<String>,
 }
 
 #[derive(Debug, Error)]
@@ -48,15 +49,26 @@ async fn check_status_code_and_deserialize<T: DeserializeOwned>(
 }
 
 impl JupiterSwapApiClient {
-    pub fn new(base_path: String) -> Self {
-        Self { base_path }
+    pub fn new(base_path: String, api_key: Option<String>) -> Self {
+        Self { base_path, api_key }
+    }
+
+    fn build_client(&self) -> Client {
+        let mut headers = reqwest::header::HeaderMap::new();
+        if let Some(ref key) = self.api_key {
+            headers.insert("x-api-key", key.parse().expect("Invalid API key header value"));
+        }
+        Client::builder()
+            .default_headers(headers)
+            .build()
+            .expect("Failed to build HTTP client")
     }
 
     pub async fn quote(&self, quote_request: &QuoteRequest) -> Result<QuoteResponse, ClientError> {
         let url = format!("{}/quote", self.base_path);
         let extra_args = quote_request.quote_args.clone();
         let internal_quote_request = InternalQuoteRequest::from(quote_request.clone());
-        let response = Client::new()
+        let response = self.build_client()
             .get(url)
             .query(&internal_quote_request)
             .query(&extra_args)
@@ -70,7 +82,7 @@ impl JupiterSwapApiClient {
         swap_request: &SwapRequest,
         extra_args: Option<HashMap<String, String>>,
     ) -> Result<SwapResponse, ClientError> {
-        let response = Client::new()
+        let response = self.build_client()
             .post(format!("{}/swap", self.base_path))
             .query(&extra_args)
             .json(swap_request)
@@ -83,7 +95,7 @@ impl JupiterSwapApiClient {
         &self,
         swap_request: &SwapRequest,
     ) -> Result<SwapInstructionsResponse, ClientError> {
-        let response = Client::new()
+        let response = self.build_client()
             .post(format!("{}/swap-instructions", self.base_path))
             .json(swap_request)
             .send()
