@@ -44,14 +44,15 @@ pub struct RoutePlanStep {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderPlatformFee {
-    #[serde(with = "field_as_string")]
-    pub amount: u64,
     pub fee_bps: u16,
+    #[serde(with = "field_as_string")]
+    pub fee_mint: Pubkey,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderResponse {
+    pub mode: Option<String>,
     #[serde(with = "field_as_string")]
     pub input_mint: Pubkey,
     #[serde(with = "field_as_string")]
@@ -66,6 +67,7 @@ pub struct OrderResponse {
     pub swap_mode: String,
     pub slippage_bps: u16,
     pub price_impact_pct: Decimal,
+    pub price_impact: Option<f64>,
     #[serde(with = "field_as_string")]
     pub other_amount_threshold: u64,
     pub route_plan: Vec<RoutePlanStep>,
@@ -95,6 +97,7 @@ pub struct OrderResponse {
     #[serde(with = "option_field_as_string")]
     #[serde(default)]
     pub taker: Option<Pubkey>,
+    pub last_valid_block_height: Option<String>,
 }
 
 /// Request body for `POST /ultra/v1/execute`.
