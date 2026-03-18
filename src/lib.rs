@@ -1,15 +1,11 @@
-use std::collections::HashMap;
-
 use order::{ExecuteRequest, ExecuteResponse, OrderRequest, OrderResponse};
 use reqwest::{Client, Response};
 use serde::de::DeserializeOwned;
-use swap::{SwapInstructionsResponse, SwapInstructionsResponseInternal, SwapRequest, SwapResponse};
 use thiserror::Error;
 
 pub mod order;
 pub mod route_plan_with_metadata;
 pub mod serde_helpers;
-pub mod swap;
 pub mod transaction_config;
 
 #[derive(Clone)]
@@ -64,20 +60,6 @@ impl JupiterSwapApiClient {
             .expect("Failed to build HTTP client")
     }
 
-    pub async fn swap(
-        &self,
-        swap_request: &SwapRequest,
-        extra_args: Option<HashMap<String, String>>,
-    ) -> Result<SwapResponse, ClientError> {
-        let response = self.build_client()
-            .post(format!("{}/swap", self.base_path))
-            .query(&extra_args)
-            .json(swap_request)
-            .send()
-            .await?;
-        check_status_code_and_deserialize(response).await
-    }
-
     pub async fn order(
         &self,
         order_request: &OrderRequest,
@@ -104,19 +86,5 @@ impl JupiterSwapApiClient {
             .send()
             .await?;
         check_status_code_and_deserialize(response).await
-    }
-
-    pub async fn swap_instructions(
-        &self,
-        swap_request: &SwapRequest,
-    ) -> Result<SwapInstructionsResponse, ClientError> {
-        let response = self.build_client()
-            .post(format!("{}/swap-instructions", self.base_path))
-            .json(swap_request)
-            .send()
-            .await?;
-        check_status_code_and_deserialize::<SwapInstructionsResponseInternal>(response)
-            .await
-            .map(Into::into)
     }
 }
