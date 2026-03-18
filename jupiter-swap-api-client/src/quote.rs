@@ -1,5 +1,7 @@
 //! Quote data structure for quoting and quote response
 //!
+//! **Deprecated**: Use the Ultra API via the [`order`](crate::order) module instead.
+//!
 
 use std::{collections::HashMap, str::FromStr};
 
@@ -48,11 +50,13 @@ impl FromStr for SwapMode {
     }
 }
 
+#[deprecated(note = "Use the Ultra API via the `order` module instead")]
 #[derive(Serialize, Debug, Clone, Default)]
 pub struct ComputeUnitScore {
     pub max_penalty_bps: Option<f64>,
 }
 
+#[deprecated(note = "Use `OrderRequest` from the `order` module instead")]
 #[derive(Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct QuoteRequest {
@@ -111,6 +115,7 @@ pub struct QuoteRequest {
 
 // Essentially the same as QuoteRequest, but without the extra args
 // as we pass the extra args separately
+#[deprecated(note = "Use `OrderRequest` from the `order` module instead")]
 #[derive(Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct InternalQuoteRequest {
@@ -188,6 +193,7 @@ impl From<QuoteRequest> for InternalQuoteRequest {
 /// Comma delimited list of dex labels
 type Dexes = String;
 
+#[deprecated(note = "Use `OrderPlatformFee` from the `order` module instead")]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct PlatformFee {
@@ -196,6 +202,7 @@ pub struct PlatformFee {
     pub fee_bps: u8,
 }
 
+#[deprecated(note = "Use `OrderResponse` from the `order` module instead")]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct QuoteResponse {
@@ -223,6 +230,7 @@ pub struct QuoteResponse {
     pub most_reliable_amms_quote_report: Option<MostReliableAmmsQuoteReport>,
 }
 
+#[deprecated(note = "Use the Ultra API via the `order` module instead")]
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct MostReliableAmmsQuoteReport {
