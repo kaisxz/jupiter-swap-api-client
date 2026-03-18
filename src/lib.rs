@@ -52,7 +52,10 @@ impl JupiterSwapApiClient {
     fn build_client(&self) -> Client {
         let mut headers = reqwest::header::HeaderMap::new();
         if let Some(ref key) = self.api_key {
-            headers.insert("x-api-key", key.parse().expect("Invalid API key header value"));
+            headers.insert(
+                "x-api-key",
+                key.parse().expect("Invalid API key header value"),
+            );
         }
         Client::builder()
             .default_headers(headers)
@@ -60,10 +63,7 @@ impl JupiterSwapApiClient {
             .expect("Failed to build HTTP client")
     }
 
-    pub async fn order(
-        &self,
-        order_request: &OrderRequest,
-    ) -> Result<OrderResponse, ClientError> {
+    pub async fn order(&self, order_request: &OrderRequest) -> Result<OrderResponse, ClientError> {
         let url = format!("{}/ultra/v1/order", self.base_path);
         let response = self
             .build_client()
