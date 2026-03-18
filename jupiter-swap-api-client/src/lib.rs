@@ -1,16 +1,12 @@
 use std::collections::HashMap;
 
 use order::{ExecuteRequest, ExecuteResponse, OrderRequest, OrderResponse};
-#[allow(deprecated)]
-use quote::{InternalQuoteRequest, QuoteRequest, QuoteResponse};
 use reqwest::{Client, Response};
 use serde::de::DeserializeOwned;
 use swap::{SwapInstructionsResponse, SwapInstructionsResponseInternal, SwapRequest, SwapResponse};
 use thiserror::Error;
 
 pub mod order;
-#[deprecated(note = "Use the Ultra API via `order` module instead")]
-pub mod quote;
 pub mod route_plan_with_metadata;
 pub mod serde_helpers;
 pub mod swap;
@@ -66,21 +62,6 @@ impl JupiterSwapApiClient {
             .default_headers(headers)
             .build()
             .expect("Failed to build HTTP client")
-    }
-
-    #[deprecated(note = "Use the Ultra API via `order()` instead")]
-    #[allow(deprecated)]
-    pub async fn quote(&self, quote_request: &QuoteRequest) -> Result<QuoteResponse, ClientError> {
-        let url = format!("{}/quote", self.base_path);
-        let extra_args = quote_request.quote_args.clone();
-        let internal_quote_request = InternalQuoteRequest::from(quote_request.clone());
-        let response = self.build_client()
-            .get(url)
-            .query(&internal_quote_request)
-            .query(&extra_args)
-            .send()
-            .await?;
-        check_status_code_and_deserialize(response).await
     }
 
     pub async fn swap(

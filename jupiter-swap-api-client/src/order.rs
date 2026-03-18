@@ -2,8 +2,7 @@
 //! (`/ultra/v1/order` and `/ultra/v1/execute` endpoints)
 //!
 
-#[allow(deprecated)]
-use crate::quote::SwapInfo;
+use crate::route_plan_with_metadata::SwapInfo;
 use crate::serde_helpers::field_as_string;
 use crate::serde_helpers::option_field_as_string;
 use rust_decimal::Decimal;

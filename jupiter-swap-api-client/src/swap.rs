@@ -1,12 +1,77 @@
+use std::collections::HashMap;
+
 use crate::{
-    quote::QuoteResponse, serde_helpers::field_as_string, transaction_config::TransactionConfig,
+    route_plan_with_metadata::RoutePlanWithMetadata,
+    serde_helpers::field_as_string,
+    transaction_config::TransactionConfig,
 };
+use anyhow::{anyhow, Error};
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 use solana_sdk::{
     instruction::{AccountMeta, Instruction},
     pubkey::Pubkey,
 };
+use std::str::FromStr;
+
+#[derive(Serialize, Deserialize, Default, PartialEq, Clone, Debug)]
+pub enum SwapMode {
+    #[default]
+    ExactIn,
+    ExactOut,
+}
+
+impl FromStr for SwapMode {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        match s {
+            "ExactIn" => Ok(Self::ExactIn),
+            "ExactOut" => Ok(Self::ExactOut),
+            _ => Err(anyhow!("{} is not a valid SwapMode", s)),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PlatformFee {
+    #[serde(with = "field_as_string")]
+    pub amount: u64,
+    pub fee_bps: u8,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct QuoteResponse {
+    #[serde(with = "field_as_string")]
+    pub input_mint: Pubkey,
+    #[serde(with = "field_as_string")]
+    pub in_amount: u64,
+    #[serde(with = "field_as_string")]
+    pub output_mint: Pubkey,
+    #[serde(with = "field_as_string")]
+    pub out_amount: u64,
+    #[serde(with = "field_as_string")]
+    pub other_amount_threshold: u64,
+    pub swap_mode: SwapMode,
+    pub slippage_bps: u16,
+    pub platform_fee: Option<PlatformFee>,
+    pub price_impact_pct: Decimal,
+    pub route_plan: RoutePlanWithMetadata,
+    #[serde(default)]
+    pub context_slot: u64,
+    #[serde(default)]
+    pub time_taken: f64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub most_reliable_amms_quote_report: Option<MostReliableAmmsQuoteReport>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct MostReliableAmmsQuoteReport {
+    pub info: HashMap<String, String>,
+}
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
