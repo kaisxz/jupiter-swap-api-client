@@ -1,18 +1,16 @@
-use order::{ExecuteRequest, ExecuteResponse, OrderRequest, OrderResponse};
 use reqwest::{Client, Response};
 use serde::de::DeserializeOwned;
 use thiserror::Error;
+use url::Url;
+
+use order::{ExecuteRequest, ExecuteResponse, OrderRequest, OrderResponse};
 
 pub mod order;
 pub mod route_plan_with_metadata;
 pub mod serde_helpers;
 pub mod transaction_config;
 
-#[derive(Clone)]
-pub struct JupiterSwapApiClient {
-    pub base_path: String,
-    pub api_key: Option<String>,
-}
+const API_PATH: &str = "swap/v2";
 
 #[derive(Debug, Error)]
 pub enum ClientError {
@@ -21,70 +19,66 @@ pub enum ClientError {
         status: reqwest::StatusCode,
         body: String,
     },
-    #[error("Failed to deserialize response: {0}")]
-    DeserializationError(#[from] reqwest::Error),
+
+    #[error("HTTP client error: {0}")]
+    Http(#[from] reqwest::Error),
+
+    #[error("Invalid URL: {0}")]
+    InvalidUrl(#[from] url::ParseError),
+
+    #[error("Invalid API key header value: {0}")]
+    InvalidApiKey(#[from] reqwest::header::InvalidHeaderValue),
 }
 
-async fn check_is_success(response: Response) -> Result<Response, ClientError> {
+#[derive(Clone)]
+pub struct JupiterSwapApiClient {
+    client: Client,
+    base_url: Url,
+}
+
+impl JupiterSwapApiClient {
+    /// Creates a new client for the given base URL (e.g. `"https://api.jup.ag"`).
+    pub fn new(base_url: &str, api_key: Option<&str>) -> Result<Self, ClientError> {
+        let mut url = Url::parse(base_url)?;
+        if !url.path().ends_with('/') {
+            url.set_path(&format!("{}/", url.path()));
+        }
+
+        let mut headers = reqwest::header::HeaderMap::new();
+        if let Some(key) = api_key {
+            headers.insert("x-api-key", key.parse()?);
+        }
+
+        let client = Client::builder().default_headers(headers).build()?;
+
+        Ok(Self {
+            client,
+            base_url: url,
+        })
+    }
+
+    pub async fn order(&self, request: &OrderRequest) -> Result<OrderResponse, ClientError> {
+        let url = self.endpoint("order")?;
+        let response = self.client.get(url).query(request).send().await?;
+        deserialize_response(response).await
+    }
+
+    pub async fn execute(&self, request: &ExecuteRequest) -> Result<ExecuteResponse, ClientError> {
+        let url = self.endpoint("execute")?;
+        let response = self.client.post(url).json(request).send().await?;
+        deserialize_response(response).await
+    }
+
+    fn endpoint(&self, path: &str) -> Result<Url, ClientError> {
+        Ok(self.base_url.join(&format!("{API_PATH}/{path}"))?)
+    }
+}
+
+async fn deserialize_response<T: DeserializeOwned>(response: Response) -> Result<T, ClientError> {
     if !response.status().is_success() {
         let status = response.status();
         let body = response.text().await.unwrap_or_default();
         return Err(ClientError::RequestFailed { status, body });
     }
-    Ok(response)
-}
-
-async fn check_status_code_and_deserialize<T: DeserializeOwned>(
-    response: Response,
-) -> Result<T, ClientError> {
-    let response = check_is_success(response).await?;
-    response
-        .json::<T>()
-        .await
-        .map_err(ClientError::DeserializationError)
-}
-
-impl JupiterSwapApiClient {
-    pub fn new(base_path: String, api_key: Option<String>) -> Self {
-        Self { base_path, api_key }
-    }
-
-    fn build_client(&self) -> Client {
-        let mut headers = reqwest::header::HeaderMap::new();
-        if let Some(ref key) = self.api_key {
-            headers.insert(
-                "x-api-key",
-                key.parse().expect("Invalid API key header value"),
-            );
-        }
-        Client::builder()
-            .default_headers(headers)
-            .build()
-            .expect("Failed to build HTTP client")
-    }
-
-    pub async fn order(&self, order_request: &OrderRequest) -> Result<OrderResponse, ClientError> {
-        let url = format!("{}/ultra/v1/order", self.base_path);
-        let response = self
-            .build_client()
-            .get(url)
-            .query(order_request)
-            .send()
-            .await?;
-        check_status_code_and_deserialize(response).await
-    }
-
-    pub async fn execute(
-        &self,
-        execute_request: &ExecuteRequest,
-    ) -> Result<ExecuteResponse, ClientError> {
-        let url = format!("{}/ultra/v1/execute", self.base_path);
-        let response = self
-            .build_client()
-            .post(url)
-            .json(execute_request)
-            .send()
-            .await?;
-        check_status_code_and_deserialize(response).await
-    }
+    Ok(response.json::<T>().await?)
 }

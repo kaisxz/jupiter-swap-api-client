@@ -1146,6 +1146,7 @@ dependencies = [
  "solana-account-decoder",
  "solana-sdk",
  "thiserror 2.0.18",
+ "url",
 ]
 
 [[package]]
