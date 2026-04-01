@@ -3,8 +3,14 @@ use serde::de::DeserializeOwned;
 use thiserror::Error;
 use url::Url;
 
-use order::{ExecuteRequest, ExecuteResponse, OrderRequest, OrderResponse};
+use build_transaction::BuildTransactionResponse;
+use execute_transaction::{ExecuteTransactionRequest, ExecuteTransactionResponse};
+use order::{OrderRequest, OrderResponse};
+use transaction_config::TransactionConfig;
 
+pub mod build_transaction;
+pub mod execute_transaction;
+pub mod instruction;
 pub mod order;
 pub mod route_plan_with_metadata;
 pub mod serde_helpers;
@@ -63,7 +69,19 @@ impl JupiterSwapApiClient {
         deserialize_response(response).await
     }
 
-    pub async fn execute(&self, request: &ExecuteRequest) -> Result<ExecuteResponse, ClientError> {
+    pub async fn build(
+        &self,
+        request: &TransactionConfig,
+    ) -> Result<BuildTransactionResponse, ClientError> {
+        let url = self.endpoint("build")?;
+        let response = self.client.post(url).json(request).send().await?;
+        deserialize_response(response).await
+    }
+
+    pub async fn execute_transaction(
+        &self,
+        request: &ExecuteTransactionRequest,
+    ) -> Result<ExecuteTransactionResponse, ClientError> {
         let url = self.endpoint("execute")?;
         let response = self.client.post(url).json(request).send().await?;
         deserialize_response(response).await

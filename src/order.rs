@@ -113,16 +113,6 @@ pub struct OrderResponse {
     pub error: Option<String>,
 }
 
-/// Request body for `POST /ultra/v1/execute`.
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct ExecuteRequest {
-    /// The signed and serialized base64-encoded transaction.
-    pub signed_transaction: String,
-    /// The request ID from the order response.
-    pub request_id: String,
-}
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SwapEvent {
@@ -134,23 +124,4 @@ pub struct SwapEvent {
     pub output_mint: Pubkey,
     #[serde(with = "field_as_string")]
     pub output_amount: u64,
-}
-
-/// Response from `POST /ultra/v1/execute`.
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct ExecuteResponse {
-    pub status: String,
-    pub signature: Option<String>,
-    pub slot: Option<String>,
-    pub code: i32,
-    pub error: Option<String>,
-    #[serde(with = "option_field_as_string")]
-    #[serde(default)]
-    pub input_amount_result: Option<u64>,
-    #[serde(with = "option_field_as_string")]
-    #[serde(default)]
-    pub output_amount_result: Option<u64>,
-    #[serde(default)]
-    pub swap_events: Option<Vec<SwapEvent>>,
 }
