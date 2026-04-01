@@ -44,8 +44,9 @@ pub struct RoutePlanStep {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderPlatformFee {
-    #[serde(with = "field_as_string")]
-    pub amount: u64,
+    #[serde(with = "option_field_as_string")]
+    #[serde(default)]
+    pub amount: Option<u64>,
     pub fee_bps: u16,
     #[serde(with = "field_as_string")]
     pub fee_mint: Pubkey,
@@ -68,6 +69,7 @@ pub struct OrderResponse {
     pub swap_usd_value: f64,
     pub swap_mode: String,
     pub slippage_bps: u16,
+    #[serde(with = "field_as_string")]
     pub price_impact_pct: Decimal,
     pub price_impact: Option<f64>,
     #[serde(with = "field_as_string")]
