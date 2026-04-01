@@ -27,14 +27,6 @@ pub struct ExecuteTransactionRequest {
 
 /// Response from `POST /swap/v2/execute`.
 ///
-/// # Error codes
-///
-/// | Range | Source     | Codes |
-/// |-------|-----------|-------|
-/// | 0     | Success   | — |
-/// | -1‥  | Ultra     | -1 missing cached order, -2 invalid signed tx, -3 invalid message bytes |
-/// | -1000‥| Aggregator| -1000 failed to land, -1001 unknown, -1002 invalid tx, -1003 not fully signed, -1004 invalid block height |
-/// | -2000‥| RFQ       | -2000 failed to land, -2001 unknown, -2002 invalid payload, -2003 quote expired, -2004 swap rejected |
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ExecuteTransactionResponse {
