@@ -44,6 +44,8 @@ pub struct RoutePlanStep {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct OrderPlatformFee {
+    #[serde(with = "field_as_string")]
+    pub amount: u64,
     pub fee_bps: u16,
     #[serde(with = "field_as_string")]
     pub fee_mint: Pubkey,
@@ -98,6 +100,17 @@ pub struct OrderResponse {
     #[serde(default)]
     pub taker: Option<Pubkey>,
     pub last_valid_block_height: Option<String>,
+    #[serde(with = "option_field_as_string")]
+    #[serde(default)]
+    pub referral_account: Option<Pubkey>,
+    pub quote_id: Option<String>,
+    #[serde(with = "option_field_as_string")]
+    #[serde(default)]
+    pub maker: Option<Pubkey>,
+    pub expire_at: Option<String>,
+    pub error_code: Option<i32>,
+    pub error_message: Option<String>,
+    pub error: Option<String>,
 }
 
 /// Request body for `POST /ultra/v1/execute`.
