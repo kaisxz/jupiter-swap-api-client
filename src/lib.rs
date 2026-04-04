@@ -29,6 +29,12 @@ pub enum ClientError {
     #[error("HTTP client error: {0}")]
     Http(#[from] reqwest::Error),
 
+    #[error("Failed to deserialize response: {error}")]
+    DeserializeFailed {
+        error: serde_json::Error,
+        body: String,
+    },
+
     #[error("Invalid URL: {0}")]
     InvalidUrl(#[from] url::ParseError),
 
@@ -93,10 +99,14 @@ impl JupiterSwapApiClient {
 }
 
 async fn deserialize_response<T: DeserializeOwned>(response: Response) -> Result<T, ClientError> {
-    if !response.status().is_success() {
-        let status = response.status();
-        let body = response.text().await.unwrap_or_default();
+    let status = response.status();
+    let body = response.text().await.unwrap_or_default();
+
+    if !status.is_success() {
         return Err(ClientError::RequestFailed { status, body });
     }
-    Ok(response.json::<T>().await?)
+
+    serde_json::from_str::<T>(&body).map_err(|error| {
+        ClientError::DeserializeFailed { error, body }
+    })
 }
