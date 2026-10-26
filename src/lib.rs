@@ -3,10 +3,9 @@ use serde::de::DeserializeOwned;
 use thiserror::Error;
 use url::Url;
 
-use build_transaction::BuildTransactionResponse;
+use build_transaction::{BuildRequest, BuildTransactionResponse};
 use execute_transaction::{ExecuteTransactionRequest, ExecuteTransactionResponse};
 use order::{OrderRequest, OrderResponse};
-use transaction_config::TransactionConfig;
 
 pub mod build_transaction;
 pub mod execute_transaction;
@@ -75,12 +74,13 @@ impl JupiterSwapApiClient {
         deserialize_response(response).await
     }
 
+    /// `GET /swap/v2/build`. Returns a Metis quote and raw instructions.
     pub async fn build(
         &self,
-        request: &TransactionConfig,
+        request: &BuildRequest,
     ) -> Result<BuildTransactionResponse, ClientError> {
         let url = self.endpoint("build")?;
-        let response = self.client.post(url).json(request).send().await?;
+        let response = self.client.get(url).query(request).send().await?;
         deserialize_response(response).await
     }
 
@@ -106,7 +106,5 @@ async fn deserialize_response<T: DeserializeOwned>(response: Response) -> Result
         return Err(ClientError::RequestFailed { status, body });
     }
 
-    serde_json::from_str::<T>(&body).map_err(|error| {
-        ClientError::DeserializeFailed { error, body }
-    })
+    serde_json::from_str::<T>(&body).map_err(|error| ClientError::DeserializeFailed { error, body })
 }

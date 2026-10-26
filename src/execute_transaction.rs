@@ -33,10 +33,13 @@ pub struct ExecuteTransactionResponse {
     /// `"Success"` or `"Failed"`.
     pub status: String,
     /// The on-chain transaction signature, if available.
+    #[serde(default)]
     pub signature: Option<String>,
     /// The slot in which the transaction was confirmed.
+    #[serde(default)]
     pub slot: Option<String>,
     /// Human-readable error message (present when `status` is `"Failed"`).
+    #[serde(default)]
     pub error: Option<String>,
     /// Numeric error code. `0` means success; see table above for failure codes.
     pub code: i32,

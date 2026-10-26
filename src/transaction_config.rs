@@ -1,3 +1,8 @@
+//! Legacy Metis swap-instruction options.
+//!
+//! `GET /swap/v2/build` uses [`crate::build_transaction::BuildRequest`].
+//! Depends on `serde`, `serde_json`, `solana_account_decoder::UiAccount`, and `solana_sdk::pubkey`.
+
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 use solana_account_decoder::UiAccount;

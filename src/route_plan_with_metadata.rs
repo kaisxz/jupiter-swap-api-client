@@ -10,7 +10,9 @@ pub type RoutePlanWithMetadata = Vec<RoutePlanStep>;
 #[serde(rename_all = "camelCase")]
 pub struct RoutePlanStep {
     pub swap_info: SwapInfo,
-    pub percent: u8,
+    /// Share of the swap routed through this hop, in percent.
+    /// Split routes are fractional (`21.6` means 21.6%).
+    pub percent: f64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq)]
